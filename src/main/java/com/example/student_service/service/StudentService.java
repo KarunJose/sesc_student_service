@@ -61,7 +61,7 @@ public class StudentService {
 
         // Integrate with Library microservice to create an account
         try {
-            restTemplate.postForObject("http://localhost:80/api/register", payload, String.class);
+            restTemplate.postForObject("http://libraryapp/api/register", payload, String.class);
         } catch (RestClientException e) {
             throw new RuntimeException("Failed to register with Library microservice: " + e.getMessage());
         }
@@ -69,7 +69,7 @@ public class StudentService {
         Map<String, String> financePayload = new HashMap<>();
         financePayload.put("studentId", saved.getId().toString());
         try {
-            restTemplate.postForObject("http://localhost:8081/accounts", financePayload, String.class);
+            restTemplate.postForObject("http://financeapp:8081/accounts", financePayload, String.class);
         } catch (RestClientException e) {
             throw new RuntimeException("Failed to register with Finance microservice: " + e.getMessage());
         }
@@ -133,7 +133,7 @@ public class StudentService {
         try {
             // First try to get account ID
             ResponseEntity<Map> response = restTemplate.exchange(
-                "http://localhost:8081/accounts/student/" + studentId,
+                "http://financeapp:8081/accounts/student/" + studentId,
                 HttpMethod.GET,
                 null,
                 Map.class);
@@ -143,7 +143,7 @@ public class StudentService {
                 response.getBody().containsKey("id")) {
                 
                 Long accountId = ((Number) response.getBody().get("id")).longValue();
-                restTemplate.delete("http://localhost:8081/accounts/" + accountId);
+                restTemplate.delete("http://financeapp:8081/accounts/" + accountId);
                 logger.info("Deleted finance account {} for student {}", accountId, studentId);
             }
         } catch (RestClientException e) {
@@ -162,7 +162,7 @@ public class StudentService {
             invoicePayload.put("dueDate", LocalDate.now().plusDays(30).toString());
 
             // Send to Finance microservice
-            restTemplate.postForObject("http://localhost:8081/invoices", 
+            restTemplate.postForObject("http://financeapp:8081/invoices", 
                                      invoicePayload, 
                                      String.class);
             
@@ -173,51 +173,51 @@ public class StudentService {
         }
     }
 
-    @Scheduled(fixedRate = 86400000) // Runs daily (24 hours in milliseconds)
-    public void checkForLibraryFines() {
-        try {
-            // 1. Get all students
-            List<Student> students = repo.findAll();
+    // @Scheduled(fixedRate = 86400000) // Runs daily (24 hours in milliseconds)
+    // public void checkForLibraryFines() {
+    //     try {
+    //         // 1. Get all students
+    //         List<Student> students = repo.findAll();
 
-            // 2. For each student, check overdue books
-            for (Student student : students) {
-                // Call Library's /admin/overdue endpoint
-                ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
-                    "http://localhost:80/admin/overdue",
-                    HttpMethod.GET,
-                    null,
-                    new ParameterizedTypeReference<List<Map<String, Object>>>() {}
-                );
+    //         // 2. For each student, check overdue books
+    //         for (Student student : students) {
+    //             // Call Library's /admin/overdue endpoint
+    //             ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
+    //                 "http://localhost:80/admin/overdue",
+    //                 HttpMethod.GET,
+    //                 null,
+    //                 new ParameterizedTypeReference<List<Map<String, Object>>>() {}
+    //             );
 
-                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                    // 3. Process overdue books for this student
-                    List<Map<String, Object>> overdueBooks = response.getBody().stream()
-                        .filter(book -> book.get("student_id").equals(student.getId().toString()))
-                        .collect(Collectors.toList());
+    //             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+    //                 // 3. Process overdue books for this student
+    //                 List<Map<String, Object>> overdueBooks = response.getBody().stream()
+    //                     .filter(book -> book.get("student_id").equals(student.getId().toString()))
+    //                     .collect(Collectors.toList());
 
-                    for (Map<String, Object> book : overdueBooks) {
-                        // Calculate fine (e.g., £5 per overdue book)
-                        double fineAmount = 5.0;
-                        String bookTitle = (String) book.get("title");
+    //                 for (Map<String, Object> book : overdueBooks) {
+    //                     // Calculate fine (e.g., £5 per overdue book)
+    //                     double fineAmount = 5.0;
+    //                     String bookTitle = (String) book.get("title");
 
-                        // Create invoice in Finance system
-                        Map<String, Object> invoicePayload = new HashMap<>();
-                        invoicePayload.put("studentId", student.getId());
-                        invoicePayload.put("amount", fineAmount);
-                        invoicePayload.put("type", "LIBRARY_FINE");
-                        invoicePayload.put("description", "Late return: " + bookTitle);
+    //                     // Create invoice in Finance system
+    //                     Map<String, Object> invoicePayload = new HashMap<>();
+    //                     invoicePayload.put("studentId", student.getId());
+    //                     invoicePayload.put("amount", fineAmount);
+    //                     invoicePayload.put("type", "LIBRARY_FINE");
+    //                     invoicePayload.put("description", "Late return: " + bookTitle);
 
-                        restTemplate.postForObject(
-                            "http://localhost:8081/invoices",
-                            invoicePayload,
-                            String.class
-                        );
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Failed to check for library fines: {}", e.getMessage());
-        }
-    }
+    //                     restTemplate.postForObject(
+    //                         "http://localhost:8081/invoices",
+    //                         invoicePayload,
+    //                         String.class
+    //                     );
+    //                 }
+    //             }
+    //         }
+    //     } catch (Exception e) {
+    //         logger.error("Failed to check for library fines: {}", e.getMessage());
+    //     }
+    // }
 
 }

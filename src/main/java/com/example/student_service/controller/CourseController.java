@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @Transactional
-@RequestMapping("/student")
+@RequestMapping("/course")
 public class CourseController {
 
     private final CourseService courseEnrolmentService;

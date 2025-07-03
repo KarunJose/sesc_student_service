@@ -1,7 +1,7 @@
 let currentStudent = null;
 
 // Base URL for the backend API
-const API_URL = 'http://localhost:8080/student';
+const API_URL = 'http://localhost:8090/student';
 
 // Initialize the app on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -175,7 +175,7 @@ async function showMainSection() {
 // Load available courses
 async function loadCourses() {
     try {
-        const enrolmentsResponse = await fetch(`${API_URL}/enrolments?studentId=${currentStudent.id}`);
+        const enrolmentsResponse = await fetch(`${API_URL}/course/enrolments?studentId=${currentStudent.id}`);
         let enrolledCourseIds = [];
         if (enrolmentsResponse.ok) {
             const enrolments = await enrolmentsResponse.json();
@@ -234,7 +234,7 @@ async function loadCourses() {
 // Enrol in a course
 async function enrolInCourse(courseId) {
     try {
-        const enrolmentsResponse = await fetch(`${API_URL}/enrolments?studentId=${currentStudent.id}`);
+        const enrolmentsResponse = await fetch(`http://localhost:8090/course/enrolments?studentId=${currentStudent.id}`);
         if (enrolmentsResponse.ok) {
             const enrolments = await enrolmentsResponse.json();
             const isAlreadyEnrolled = enrolments.some(course => {
@@ -261,7 +261,7 @@ async function enrolInCourse(courseId) {
             return;
         }
 
-        const response = await fetch(`${API_URL}/enrol?studentId=${currentStudent.id}&courseId=${courseId}`, {
+        const response = await fetch(`http://localhost:8090/course/enrol?studentId=${currentStudent.id}&courseId=${courseId}`, {
             method: 'POST'
         });
 
@@ -281,7 +281,7 @@ async function enrolInCourse(courseId) {
 // View enrolments
 async function viewEnrolments() {
     try {
-        const response = await fetch(`${API_URL}/enrolments?studentId=${currentStudent.id}`);
+        const response = await fetch(`http://localhost:8090/course/enrolments?studentId=${currentStudent.id}`);
         if (response.ok) {
             const enrolments = await response.json();
             const enrolmentList = document.getElementById('enrolment-list');

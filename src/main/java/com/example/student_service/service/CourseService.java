@@ -59,7 +59,7 @@ public class CourseService {
     
         try {
             ResponseEntity<Map> response = restTemplate.postForEntity(
-                "http://localhost:8081/invoices",
+                "http://financeapp:8081/invoices",
                 invoicePayload,
                 Map.class
             );
@@ -89,7 +89,7 @@ public class CourseService {
         List<Map<String, Object>> invoices = new ArrayList<>();
 
         // Step 1: Verify student has an account
-        String accountUrl = "http://localhost:8081/accounts/student/" + studentId;
+        String accountUrl = "http://financeapp:8081/accounts/student/" + studentId;
         try {
             ResponseEntity<Map<String, Object>> accountResponse = restTemplate.exchange(
                 accountUrl,

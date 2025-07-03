@@ -98,12 +98,12 @@ public class StudentController {
         return service.getAllCourses();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/profile/{id}")
     public Student getProfile(@PathVariable Long id) {
         return service.getProfile(id);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/profile/{id}")
     public Student updateProfile(@PathVariable Long id,
                                 @RequestParam String name,
                                 @RequestParam String surname) {
